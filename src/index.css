@@ -296,6 +296,103 @@ input[type="range"] {
   opacity: 0.5;
 }
 
+/* Card Selector Layout */
+.card-selector-grid {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 4px 12px 4px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.card-selector-grid::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.card-selector-grid {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.selector-card {
+  flex: 0 0 100px;
+  aspect-ratio: 1 / 1.05;
+  background: var(--panel-bg);
+  border: 1.5px solid #2a2a2f;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.selector-card:hover {
+  background: #252528;
+  border-color: #4a4a52;
+  transform: translateY(-2px);
+}
+
+.selector-card.active {
+  background: #222225;
+  border-color: #414446;
+  border-width: 2px;
+}
+
+.card-visual-container {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.card-visual-svg {
+  width: 100%;
+  height: auto;
+  max-height: 52px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+}
+
+.card-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-align: center;
+  margin-top: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.selector-card.active .card-label {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Grid for Note Filter cards */
+.note-filter-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+}
+
+.note-filter-grid .selector-card {
+  flex: unset;
+  aspect-ratio: 1.4 / 1;
+}
+
 .sticky-bottom {
   position: fixed;
   bottom: 0;
