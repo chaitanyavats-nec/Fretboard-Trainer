@@ -4,18 +4,18 @@ import { TUNINGS, getNoteName } from '../lib/fretboard';
 export default function Fretboard({ tuning, fretRange, revealedNoteName, activeStrings }) {
   const strings = TUNINGS[tuning].notes;
   const numStrings = strings.length;
-  
+
   const minFret = fretRange.min;
   const maxFret = fretRange.max;
   const numFrets = minFret === 0 ? maxFret : maxFret - minFret + 1;
-  
+
   const width = 300;
   const height = numFrets * 60 + (minFret === 0 ? 30 : 0);
-  
+
   const marginX = 24;
   const usableWidth = width - 2 * marginX;
   const stringSpacing = usableWidth / (numStrings - 1);
-  
+
   const marginTop = minFret === 0 ? 30 : 20;
   const marginBottom = 20;
   const usableHeight = height - marginTop - marginBottom;
@@ -32,7 +32,7 @@ export default function Fretboard({ tuning, fretRange, revealedNoteName, activeS
         const name = getNoteName(openNote, fret);
         if (name === revealedNoteName) {
           const x = marginX + stringIndex * stringSpacing;
-          const y = fret === 0 
+          const y = fret === 0
             ? marginTop - 12
             : marginTop + (minFret === 0 ? (fret - 1) : (fret - minFret)) * fretSpacing + fretSpacing / 2;
           notes.push({ stringIndex, fret, noteName: name, x, y });
@@ -48,17 +48,18 @@ export default function Fretboard({ tuning, fretRange, revealedNoteName, activeS
     <div className="fretboard-container">
       <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet" className="fretboard-svg">
         
+
         {/* Fret Wires */}
         {Array.from({ length: numFrets + 1 }).map((_, i) => {
           const wireNum = minFret === 0 ? i : minFret - 1 + i;
           const y = marginTop + i * fretSpacing;
           return (
-            <line 
+            <line
               key={`fretline-${i}`}
-              x1={marginX - 5} y1={y} 
-              x2={width - marginX + 5} y2={y} 
-              stroke="#3a3a3a" 
-              strokeWidth={wireNum === 0 ? 6 : 1.5} 
+              x1={marginX - 5} y1={y}
+              x2={width - marginX + 5} y2={y}
+              stroke="#3a3a3a"
+              strokeWidth={wireNum === 0 ? 6 : 1.5}
             />
           );
         })}
@@ -66,29 +67,37 @@ export default function Fretboard({ tuning, fretRange, revealedNoteName, activeS
         {/* Fret Numbers & Markers */}
         {Array.from({ length: numFrets }).map((_, i) => {
           const fretSpaceNum = minFret === 0 ? i + 1 : minFret + i;
-          if (fretSpaceNum > maxFret) return null; 
+          if (fretSpaceNum > maxFret) return null;
 
           const cy = marginTop + i * fretSpacing + fretSpacing / 2;
           const cx = width / 2;
           const isMarker = markers.includes(fretSpaceNum);
-          
+          const isOctave = fretSpaceNum % 12 === 0;
+
           return (
             <g key={`fret-space-${i}`}>
-              <text 
-                x={8} y={cy} 
-                fill="#555" fontSize="12" textAnchor="start" dominantBaseline="middle"
+              {/* Highlighted Fret Numbers */}
+              <text
+                x={6} y={cy}
+                fill={isOctave ? "#60a5fa" : (isMarker ? "#a0c4e8" : "#444444")}
+                fontSize={isMarker ? (isOctave ? "14" : "13") : "11"}
+                fontWeight={isMarker ? "700" : "400"}
+                textAnchor="start"
+                dominantBaseline="middle"
+                style={{ transition: 'fill 0.2s ease' }}
               >
                 {fretSpaceNum}
               </text>
-              
+
+              {/* Fret Markers */}
               {isMarker && (
-                fretSpaceNum % 12 === 0 ? (
-                  <>
-                    <circle cx={cx - stringSpacing} cy={cy} r="5" fill="#252525" />
-                    <circle cx={cx + stringSpacing} cy={cy} r="5" fill="#252525" />
-                  </>
+                isOctave ? (
+                  <g>
+                    <circle cx={cx - stringSpacing * 0.75} cy={cy} r="5" fill="#a0c4e8" />
+                    <circle cx={cx + stringSpacing * 0.75} cy={cy} r="5" fill="#a0c4e8" />
+                  </g>
                 ) : (
-                  <circle cx={cx} cy={cy} r="5" fill="#252525" />
+                  <circle cx={cx} cy={cy} r="5" fill="#a0c4e8" />
                 )
               )}
             </g>
@@ -100,12 +109,12 @@ export default function Fretboard({ tuning, fretRange, revealedNoteName, activeS
           const x = marginX + i * stringSpacing;
           const stringThickness = 1 + (numStrings - i) * 0.4;
           return (
-            <line 
+            <line
               key={`string-${i}`}
-              x1={x} y1={minFret === 0 ? marginTop - 24 : marginTop} 
-              x2={x} y2={marginTop + numFrets * fretSpacing} 
-              stroke="#666" 
-              strokeWidth={stringThickness} 
+              x1={x} y1={minFret === 0 ? marginTop - 24 : marginTop}
+              x2={x} y2={marginTop + numFrets * fretSpacing}
+              stroke="#666"
+              strokeWidth={stringThickness}
             />
           );
         })}
@@ -133,21 +142,21 @@ export default function Fretboard({ tuning, fretRange, revealedNoteName, activeS
         {revealedNotes.map((note, idx) => {
           const delay = note.stringIndex * 0.12;
           return (
-            <g 
+            <g
               key={`note-${idx}`}
               className="revealed-note"
               transform={`translate(${note.x}, ${note.y})`}
             >
-              <circle 
-                cx="0" cy="0" r="14" 
-                fill="#a0c4e8" 
-                className="note-circle" 
+              <circle
+                cx="0" cy="0" r="14"
+                fill="#a0c4e8"
+                className="note-circle"
                 style={{ animationDelay: `${delay}s` }}
               />
-              <text 
-                x="0" y="1" 
-                fill="#111" 
-                fontSize="12" fontWeight="700" 
+              <text
+                x="0" y="1"
+                fill="#111"
+                fontSize="12" fontWeight="700"
                 textAnchor="middle" dominantBaseline="middle"
                 style={{ animationDelay: `${delay}s` }}
               >

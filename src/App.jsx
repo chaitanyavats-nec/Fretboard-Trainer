@@ -76,14 +76,12 @@ function App() {
 
       {currentScreen === 'exercise' && (
         <div className="screen-exercise">
-          <header className="mobile-header">
-            <button className="btn text-btn" onClick={() => setCurrentScreen('settings')}>&larr; Settings</button>
-            <h2>Training</h2>
-            <div style={{width: '60px'}}></div>
-          </header>
-          
           <div className="exercise-content">
-            <ExerciseRunner settings={settings} />
+            <ExerciseRunner 
+              settings={settings} 
+              onGoToSettings={() => setCurrentScreen('settings')}
+              onGoToHome={() => setCurrentScreen('home')}
+            />
           </div>
         </div>
       )}

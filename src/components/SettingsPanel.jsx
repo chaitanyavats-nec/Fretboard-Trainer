@@ -1,5 +1,5 @@
 import React from 'react';
-import { TUNINGS } from '../lib/fretboard';
+import { TUNINGS, getNoteFrequency } from '../lib/fretboard';
 import { playTone, initAudio } from '../lib/audioEngine';
 
 export default function SettingsPanel({ settings, setSettings }) {
@@ -8,9 +8,17 @@ export default function SettingsPanel({ settings, setSettings }) {
   };
 
   const handleStringToggle = (index) => {
+    const isNowChecked = !settings.activeStrings[index];
     const newStrings = [...settings.activeStrings];
-    newStrings[index] = !newStrings[index];
+    newStrings[index] = isNowChecked;
     setSettings({ ...settings, activeStrings: newStrings });
+
+    if (isNowChecked) {
+      initAudio();
+      const openNote = TUNINGS[settings.tuning].notes[index];
+      const freq = getNoteFrequency(openNote);
+      playTone(freq, 0.5, settings.oscillatorType, settings.volume);
+    }
   };
 
   const handleFretRangeChange = (type, value) => {
@@ -29,6 +37,10 @@ export default function SettingsPanel({ settings, setSettings }) {
     playTone(440, 0.5, newTone, settings.volume);
   };
 
+  const notes = TUNINGS[settings.tuning].notes;
+  // Display strings from High pitch (top) to Low pitch (bottom), matching standard guitar view
+  const stringIndices = notes.map((_, i) => notes.length - 1 - i);
+
   return (
     <div className="settings-panel">
       <div className="setting-group">
@@ -40,19 +52,41 @@ export default function SettingsPanel({ settings, setSettings }) {
         </select>
       </div>
 
-      <div className="setting-group">
-        <label>Active Strings (Low to High)</label>
-        <div className="string-toggles">
-          {TUNINGS[settings.tuning].notes.map((note, idx) => (
-            <label key={idx} className="string-toggle">
-              <input
-                type="checkbox"
-                checked={settings.activeStrings[idx]}
-                onChange={() => handleStringToggle(idx)}
-              />
-              {note.replace(/\d/, '')}
-            </label>
-          ))}
+      <div className="string-selection-card">
+        <div className="string-card-header">
+          Active Strings (low to high)
+        </div>
+        <div className="string-selector-container">
+          {stringIndices.map((idx) => {
+            const note = notes[idx];
+            const isChecked = settings.activeStrings[idx];
+            let label = note.replace(/\d/, '');
+            if (idx === notes.length - 1 && label === 'E') {
+              label = 'e';
+            }
+            // Line thickness varies: low E (idx 0) is thickest (~5px), high e (idx 5) is thinnest (~1.5px)
+            const lineThickness = 1.5 + (notes.length - 1 - idx) * 0.7;
+
+            return (
+              <div 
+                key={idx} 
+                className={`string-row ${isChecked ? 'active' : ''}`}
+                onClick={() => handleStringToggle(idx)}
+              >
+                <div className="string-label">{label}</div>
+                <div className={`custom-checkbox ${isChecked ? 'checked' : ''}`}>
+                  {isChecked && <div className="checkbox-dot" />}
+                </div>
+                <div className="string-divider" />
+                <div className="string-line-wrapper">
+                  <div 
+                    className={`string-line ${isChecked ? 'active' : 'inactive'}`}
+                    style={{ height: `${lineThickness}px` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

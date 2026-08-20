@@ -7,12 +7,13 @@ const STATE_STOPPED = 'STOPPED';
 const STATE_THINK = 'THINK';
 const STATE_REVEAL = 'REVEAL';
 
-export default function ExerciseRunner({ settings }) {
+export default function ExerciseRunner({ settings, onGoToSettings, onGoToHome }) {
   const [exerciseState, setExerciseState] = useState(STATE_STOPPED);
   const [currentNote, setCurrentNote] = useState(null);
   
   const [pausedState, setPausedState] = useState(null);
   const [showControls, setShowControls] = useState(true);
+  const [skipFlash, setSkipFlash] = useState(false);
   
   const timerRef = useRef(null);
   const startTimeRef = useRef(null);
@@ -38,6 +39,11 @@ export default function ExerciseRunner({ settings }) {
     }
     return () => clearTimeout(hideTimer);
   }, [showControls, exerciseState]);
+
+  const triggerSkipFlash = () => {
+    setSkipFlash(true);
+    setTimeout(() => setSkipFlash(false), 300);
+  };
 
   const generateNote = () => {
     const activeStringIndices = settingsRef.current.activeStrings
@@ -130,22 +136,60 @@ export default function ExerciseRunner({ settings }) {
     e.stopPropagation();
     initAudio();
     startNewNote();
+    triggerSkipFlash();
   };
 
-  const handleScreenTap = () => {
-    setShowControls(true);
+  const handleScreenTap = (e) => {
+    const x = e.clientX ?? (e.touches && e.touches[0] ? e.touches[0].clientX : null);
+    const screenWidth = window.innerWidth;
+
+    if (x !== null && x > screenWidth / 2) {
+      // Tap on right side of screen -> skip immediately to next note
+      initAudio();
+      startNewNote();
+      setShowControls(true);
+      triggerSkipFlash();
+    } else {
+      // Tap on left side of screen -> toggle controls visibility
+      setShowControls(prev => !prev);
+    }
   };
 
   return (
     <div className="exercise-runner" onClick={handleScreenTap}>
       
-      {/* The overlay is only active when thinking */}
+      {/* Right-side tap skip feedback animation */}
+      {skipFlash && (
+        <div className="skip-flash-overlay">
+          <span className="skip-flash-text">Next Note &rarr;</span>
+        </div>
+      )}
+
+      {/* Floating Header in Focus Mode (brings in on tap like bottom controls) */}
+      <div className={`floating-header ${showControls ? 'visible' : 'hidden'}`}>
+        <button 
+          onClick={(e) => { e.stopPropagation(); onGoToSettings?.(); }} 
+          className="btn text-btn glass-btn"
+        >
+          &larr; Settings
+        </button>
+        <span className="floating-header-title">Training</span>
+        <button 
+          onClick={(e) => { e.stopPropagation(); onGoToHome?.(); }} 
+          className="btn text-btn glass-btn"
+        >
+          Home &rarr;
+        </button>
+      </div>
+
+      {/* Note display overlay when thinking */}
       {(exerciseState === STATE_THINK || pausedState === STATE_THINK) && currentNote && (
         <div className="note-overlay">
           <div className="large-note">{currentNote.noteName}</div>
         </div>
       )}
 
+      {/* Floating Bottom Controls */}
       <div className={`floating-controls ${showControls ? 'visible' : 'hidden'}`}>
         <button onClick={togglePlayPause} className={`btn ${exerciseState === STATE_STOPPED ? 'primary' : ''}`}>
           {exerciseState === STATE_STOPPED ? (pausedState ? 'Resume' : 'Play') : 'Pause'}
